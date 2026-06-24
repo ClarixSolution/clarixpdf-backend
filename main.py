@@ -103,7 +103,10 @@ async def jpg_to_pdf(file: UploadFile = File(...)):
     from PIL import Image
     import tempfile
     contents = await file.read()
-    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+    ext = os.path.splitext(file.filename)[1].lower() if file.filename else ".jpg"
+    if ext not in [".jpg", ".jpeg", ".png", ".webp", ".bmp"]:
+        ext = ".jpg"
+    with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
         tmp.write(contents)
         tmp_path = tmp.name
     img = Image.open(tmp_path).convert("RGB")
