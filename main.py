@@ -121,3 +121,121 @@ async def pdf_to_jpg(file: UploadFile = File(...)):
     images[0].save(output, "JPEG")
     url = upload_to_r2(output.getvalue(), "page1.jpg")
     return {"status": "done", "download_url": url}
+@app.post("/convert/pdf-to-word")
+async def pdf_to_word(file: UploadFile = File(...)):
+    import subprocess, tempfile, os
+    contents = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    subprocess.run(["libreoffice", "--headless", "--convert-to", "docx", "--outdir", tmp_out_dir, tmp_in_path], check=True)
+    out_filename = os.path.basename(tmp_in_path).replace(".pdf", ".docx")
+    out_path = os.path.join(tmp_out_dir, out_filename)
+    with open(out_path, "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(out_path)
+    url = upload_to_r2(data, "converted.docx")
+    return {"status": "done", "download_url": url}
+
+
+@app.post("/convert/word-to-pdf")
+async def word_to_pdf(file: UploadFile = File(...)):
+    import subprocess, tempfile, os
+    contents = await file.read()
+    suffix = ".docx" if file.filename.endswith(".docx") else ".doc"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    subprocess.run(["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmp_out_dir, tmp_in_path], check=True)
+    out_filename = os.path.basename(tmp_in_path).replace(suffix, ".pdf")
+    out_path = os.path.join(tmp_out_dir, out_filename)
+    with open(out_path, "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(out_path)
+    url = upload_to_r2(data, "converted.pdf")
+    return {"status": "done", "download_url": url}
+cat >> ~/clarixpdf-backend/main.py << 'EOF'
+
+
+@app.post("/convert/pdf-to-word")
+async def pdf_to_word(file: UploadFile = File(...)):
+    import subprocess, tempfile, os
+    contents = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    subprocess.run(["libreoffice", "--headless", "--convert-to", "docx", "--outdir", tmp_out_dir, tmp_in_path], check=True)
+    out_filename = os.path.basename(tmp_in_path).replace(".pdf", ".docx")
+    out_path = os.path.join(tmp_out_dir, out_filename)
+    with open(out_path, "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(out_path)
+    url = upload_to_r2(data, "converted.docx")
+    return {"status": "done", "download_url": url}
+
+
+@app.post("/convert/word-to-pdf")
+async def word_to_pdf(file: UploadFile = File(...)):
+    import subprocess, tempfile, os
+    contents = await file.read()
+    suffix = ".docx" if file.filename.endswith(".docx") else ".doc"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    subprocess.run(["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmp_out_dir, tmp_in_path], check=True)
+    out_filename = os.path.basename(tmp_in_path).replace(suffix, ".pdf")
+    out_path = os.path.join(tmp_out_dir, out_filename)
+    with open(out_path, "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(out_path)
+    url = upload_to_r2(data, "converted.pdf")
+    return {"status": "done", "download_url": url}
+cat >> ~/clarixpdf-backend/main.py << 'EOF'
+
+
+@app.post("/convert/pdf-to-word")
+async def pdf_to_word(file: UploadFile = File(...)):
+    import subprocess, tempfile, os
+    contents = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    subprocess.run(["libreoffice", "--headless", "--convert-to", "docx", "--outdir", tmp_out_dir, tmp_in_path], check=True)
+    out_filename = os.path.basename(tmp_in_path).replace(".pdf", ".docx")
+    out_path = os.path.join(tmp_out_dir, out_filename)
+    with open(out_path, "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(out_path)
+    url = upload_to_r2(data, "converted.docx")
+    return {"status": "done", "download_url": url}
+
+
+@app.post("/convert/word-to-pdf")
+async def word_to_pdf(file: UploadFile = File(...)):
+    import subprocess, tempfile, os
+    contents = await file.read()
+    suffix = ".docx" if file.filename.endswith(".docx") else ".doc"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    subprocess.run(["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmp_out_dir, tmp_in_path], check=True)
+    out_filename = os.path.basename(tmp_in_path).replace(suffix, ".pdf")
+    out_path = os.path.join(tmp_out_dir, out_filename)
+    with open(out_path, "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(out_path)
+    url = upload_to_r2(data, "converted.pdf")
+    return {"status": "done", "download_url": url}
+EOF
