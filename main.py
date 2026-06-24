@@ -132,17 +132,20 @@ async def pdf_to_jpg(file: UploadFile = File(...)):
 async def pdf_to_word(file: UploadFile = File(...)):
     import subprocess
     import tempfile
+    import glob
     contents = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_in:
         tmp_in.write(contents)
         tmp_in_path = tmp_in.name
     tmp_out_dir = tempfile.mkdtemp()
-    subprocess.run(
+    result = subprocess.run(
         ["libreoffice", "--headless", "--convert-to", "docx", "--outdir", tmp_out_dir, tmp_in_path],
-        check=True
+        capture_output=True, text=True
     )
-    out_filename = os.path.basename(tmp_in_path).replace(".pdf", ".docx")
-    out_path = os.path.join(tmp_out_dir, out_filename)
+    output_files = glob.glob(f"{tmp_out_dir}/*.docx")
+    if not output_files:
+        raise Exception(f"LibreOffice failed: {result.stderr}")
+    out_path = output_files[0]
     with open(out_path, "rb") as f:
         data = f.read()
     os.unlink(tmp_in_path)
@@ -155,18 +158,21 @@ async def pdf_to_word(file: UploadFile = File(...)):
 async def word_to_pdf(file: UploadFile = File(...)):
     import subprocess
     import tempfile
+    import glob
     contents = await file.read()
     suffix = ".docx" if file.filename.endswith(".docx") else ".doc"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
         tmp_in.write(contents)
         tmp_in_path = tmp_in.name
     tmp_out_dir = tempfile.mkdtemp()
-    subprocess.run(
+    result = subprocess.run(
         ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmp_out_dir, tmp_in_path],
-        check=True
+        capture_output=True, text=True
     )
-    out_filename = os.path.basename(tmp_in_path).replace(suffix, ".pdf")
-    out_path = os.path.join(tmp_out_dir, out_filename)
+    output_files = glob.glob(f"{tmp_out_dir}/*.pdf")
+    if not output_files:
+        raise Exception(f"LibreOffice failed: {result.stderr}")
+    out_path = output_files[0]
     with open(out_path, "rb") as f:
         data = f.read()
     os.unlink(tmp_in_path)
