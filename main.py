@@ -158,7 +158,6 @@ async def word_to_pdf(file: UploadFile = File(...)):
     os.unlink(out_path)
     url = upload_to_r2(data, "converted.pdf")
     return {"status": "done", "download_url": url}
-cat >> ~/clarixpdf-backend/main.py << 'EOF'
 
 
 @app.post("/convert/pdf-to-word")
