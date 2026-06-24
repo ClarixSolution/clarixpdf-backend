@@ -101,10 +101,15 @@ async def split_pdf(file: UploadFile = File(...), pages: str = "1"):
 @app.post("/convert/jpg-to-pdf")
 async def jpg_to_pdf(file: UploadFile = File(...)):
     from PIL import Image
+    import tempfile
     contents = await file.read()
-    img = Image.open(io.BytesIO(contents)).convert("RGB")
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+        tmp.write(contents)
+        tmp_path = tmp.name
+    img = Image.open(tmp_path).convert("RGB")
     output = io.BytesIO()
     img.save(output, "PDF")
+    os.unlink(tmp_path)
     url = upload_to_r2(output.getvalue(), "converted.pdf")
     return {"status": "done", "download_url": url}
 
