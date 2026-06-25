@@ -130,26 +130,20 @@ async def pdf_to_jpg(file: UploadFile = File(...)):
 
 @app.post("/convert/pdf-to-word")
 async def pdf_to_word(file: UploadFile = File(...)):
-    import subprocess
+    from pdf2docx import Converter
     import tempfile
-    import glob
     contents = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_in:
         tmp_in.write(contents)
         tmp_in_path = tmp_in.name
-    tmp_out_dir = tempfile.mkdtemp()
-    result = subprocess.run(
-        ["libreoffice", "--headless", "--convert-to", "docx", "--outdir", tmp_out_dir, tmp_in_path],
-        capture_output=True, text=True
-    )
-    output_files = glob.glob(f"{tmp_out_dir}/*.docx")
-    if not output_files:
-        raise Exception(f"LibreOffice failed: {result.stderr}")
-    out_path = output_files[0]
-    with open(out_path, "rb") as f:
+    tmp_out_path = tmp_in_path.replace(".pdf", ".docx")
+    cv = Converter(tmp_in_path)
+    cv.convert(tmp_out_path, start=0, end=None)
+    cv.close()
+    with open(tmp_out_path, "rb") as f:
         data = f.read()
     os.unlink(tmp_in_path)
-    os.unlink(out_path)
+    os.unlink(tmp_out_path)
     url = upload_to_r2(data, "converted.docx")
     return {"status": "done", "download_url": url}
 
