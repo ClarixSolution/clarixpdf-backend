@@ -199,3 +199,33 @@ async def protect_pdf(file: UploadFile = File(...), password: str = ""):
     writer.write(output)
     url = upload_to_r2(output.getvalue(), "protected.pdf")
     return {"status": "done", "download_url": url}
+@app.post("/convert/watermark-pdf")
+async def watermark_pdf(file: UploadFile = File(...), text: str = "CONFIDENTIAL"):
+    import pypdf
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import letter
+    import tempfile
+    contents = await file.read()
+    reader = pypdf.PdfReader(io.BytesIO(contents))
+    # Create watermark PDF in memory
+    watermark_io = io.BytesIO()
+    c = canvas.Canvas(watermark_io, pagesize=letter)
+    c.setFont("Helvetica", 50)
+    c.setFillAlpha(0.3)
+    c.saveState()
+    c.translate(300, 400)
+    c.rotate(45)
+    c.drawCentredString(0, 0, text)
+    c.restoreState()
+    c.save()
+    watermark_io.seek(0)
+    watermark_reader = pypdf.PdfReader(watermark_io)
+    watermark_page = watermark_reader.pages[0]
+    writer = pypdf.PdfWriter()
+    for page in reader.pages:
+        page.merge_page(watermark_page)
+        writer.add_page(page)
+    output = io.BytesIO()
+    writer.write(output)
+    url = upload_to_r2(output.getvalue(), "watermarked.pdf")
+    return {"status": "done", "download_url": url}

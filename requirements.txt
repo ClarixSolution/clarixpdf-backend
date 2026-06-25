@@ -28,3 +28,4 @@ uvicorn==0.39.0
 pdf2docx
 PyMuPDF==1.23.8
 cryptography
+reportlab
