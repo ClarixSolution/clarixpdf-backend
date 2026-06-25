@@ -173,3 +173,16 @@ async def word_to_pdf(file: UploadFile = File(...)):
     os.unlink(out_path)
     url = upload_to_r2(data, "converted.pdf")
     return {"status": "done", "download_url": url}
+@app.post("/convert/rotate-pdf")
+async def rotate_pdf(file: UploadFile = File(...), degrees: int = 90):
+    import pypdf
+    contents = await file.read()
+    reader = pypdf.PdfReader(io.BytesIO(contents))
+    writer = pypdf.PdfWriter()
+    for page in reader.pages:
+        page.rotate(degrees)
+        writer.add_page(page)
+    output = io.BytesIO()
+    writer.write(output)
+    url = upload_to_r2(output.getvalue(), "rotated.pdf")
+    return {"status": "done", "download_url": url}
