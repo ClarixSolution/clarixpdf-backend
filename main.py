@@ -229,3 +229,53 @@ async def watermark_pdf(file: UploadFile = File(...), text: str = "CONFIDENTIAL"
     writer.write(output)
     url = upload_to_r2(output.getvalue(), "watermarked.pdf")
     return {"status": "done", "download_url": url}
+@app.post("/convert/excel-to-pdf")
+async def excel_to_pdf(file: UploadFile = File(...)):
+    import subprocess
+    import tempfile
+    import glob
+    contents = await file.read()
+    suffix = ".xlsx" if file.filename.endswith(".xlsx") else ".xls"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    result = subprocess.run(
+        ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmp_out_dir, tmp_in_path],
+        capture_output=True, text=True
+    )
+    output_files = glob.glob(f"{tmp_out_dir}/*.pdf")
+    if not output_files:
+        raise Exception(f"LibreOffice failed: {result.stderr}")
+    with open(output_files[0], "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(output_files[0])
+    url = upload_to_r2(data, "converted.pdf")
+    return {"status": "done", "download_url": url}
+
+
+@app.post("/convert/ppt-to-pdf")
+async def ppt_to_pdf(file: UploadFile = File(...)):
+    import subprocess
+    import tempfile
+    import glob
+    contents = await file.read()
+    suffix = ".pptx" if file.filename.endswith(".pptx") else ".ppt"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_in:
+        tmp_in.write(contents)
+        tmp_in_path = tmp_in.name
+    tmp_out_dir = tempfile.mkdtemp()
+    result = subprocess.run(
+        ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmp_out_dir, tmp_in_path],
+        capture_output=True, text=True
+    )
+    output_files = glob.glob(f"{tmp_out_dir}/*.pdf")
+    if not output_files:
+        raise Exception(f"LibreOffice failed: {result.stderr}")
+    with open(output_files[0], "rb") as f:
+        data = f.read()
+    os.unlink(tmp_in_path)
+    os.unlink(output_files[0])
+    url = upload_to_r2(data, "converted.pdf")
+    return {"status": "done", "download_url": url}
