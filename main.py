@@ -186,3 +186,16 @@ async def rotate_pdf(file: UploadFile = File(...), degrees: int = 90):
     writer.write(output)
     url = upload_to_r2(output.getvalue(), "rotated.pdf")
     return {"status": "done", "download_url": url}
+@app.post("/convert/protect-pdf")
+async def protect_pdf(file: UploadFile = File(...), password: str = ""):
+    import pypdf
+    contents = await file.read()
+    reader = pypdf.PdfReader(io.BytesIO(contents))
+    writer = pypdf.PdfWriter()
+    for page in reader.pages:
+        writer.add_page(page)
+    writer.encrypt(password)
+    output = io.BytesIO()
+    writer.write(output)
+    url = upload_to_r2(output.getvalue(), "protected.pdf")
+    return {"status": "done", "download_url": url}
